@@ -2,7 +2,7 @@
 
 A cross-platform Bluetooth Low Energy (BLE) library for sending and receiving ASCII data.
 
-This project provides a simple Echo application to test BLE communication between a desktop application and a BLE device.
+This project provides a simple Echo application to test BLE communication between a desktop application(Central-client) and a BLE device(Peripheral-server).
 
 ## Features
 
