@@ -2,7 +2,9 @@
 
 A cross-platform Bluetooth Low Energy (BLE) library for sending and receiving ASCII data.
 
-This project provides a simple Echo application to test BLE communication between a desktop application(Central-client) and a BLE device(Peripheral-server).
+This project provides a simple Echo application to test BLE communication between a desktop application (Central/Client) and a BLE device (Peripheral/Server).
+
+The library uses BLE GATT characteristics with Write and Notify to send data and receive responses. Notification subscription is enabled to receive data asynchronously from the peripheral, including in simulator implementations that support this mechanism.
 
 ## Features
 
