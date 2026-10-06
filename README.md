@@ -8,7 +8,7 @@ The library uses BLE GATT characteristics with Write and Notify to send data and
 
 ## Features
 
-* Cross-platform native BLE library
+* A cross-platform nativeBLE library was integrated into the project.
 * ASCII data transmission and reception
 * Simple Echo communication test application included (electron desktop)
 * ble-bridge.cpp is main for funtionality source file 
