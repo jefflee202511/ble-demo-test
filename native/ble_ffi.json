@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "types": {
+    "int": "int",
+    "void": "void",
+    "u32": "uint32_t",
+    "str": "const char*",
+    "bytes": "const uint8_t*"
+  },
+  "callbacks": {
+    "ble_log_cb":    { "ret": "void", "args": ["str"] },
+    "ble_rx_cb":     { "ret": "void", "args": ["bytes", "u32"] },
+    "ble_found_cb":  { "ret": "void", "args": ["str", "str"] },
+    "ble_config_cb": { "ret": "void", "args": ["str"] }
+  },
+  "functions": {
+    "ble_init":       { "ret": "int", "args": ["ble_log_cb", "ble_rx_cb", "ble_found_cb", "ble_config_cb"] },
+    "ble_config_set": { "ret": "int", "args": ["str"] },
+    "ble_scan_start": { "ret": "int", "args": [] },
+    "ble_scan_stop":  { "ret": "int", "args": [] },
+    "ble_connect":    { "ret": "int", "args": ["str"] },
+    "ble_disconnect": { "ret": "int", "args": [] },
+    "ble_send":       { "ret": "int", "args": ["bytes", "u32"] },
+    "ble_pin_check":  { "ret": "int", "args": ["str"] },
+    "ble_dispose":    { "ret": "void", "args": [] }
+  }
+}

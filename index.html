@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>테스트 데모 앱</title>
+    <style>
+        body {
+            font-family: 'Malgun Gothic', Arial, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 30px;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            height: 100vh; /* 창 높이 전체를 사용: 창을 늘리면 로그 창 아래쪽이 따라 내려감 */
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            color: #666;
+            font-size: 18px;
+            margin-top: 0;
+            margin-bottom: 25px;
+        }
+        .btn-container {
+            margin-bottom: 25px;
+        }
+        button {
+            font-size: 16px;
+            padding: 12px 24px;
+            margin: 0 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        .start-btn {
+            background-color: #4CAF50; /* 초록색 */
+        }
+        .start-btn:hover {
+            background-color: #45a049;
+        }
+        .stop-btn {
+            background-color: #f44336; /* 빨간색 */
+        }
+        .stop-btn:hover {
+            background-color: #da190b;
+        }
+        
+        /* 로그 창 스타일 */
+        .log-container {
+            flex: 1;
+            min-height: 180px; /* 창이 작아도 로그 영역이 찌그러지지 않게 */
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            background-color: #1e1e1e;
+            color: #00ff00; /* 터미널 느낌의 초록색 글씨 */
+            font-family: 'Consolas', 'Courier New', monospace;
+            padding: 15px;
+            border-radius: 6px;
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+            overflow: hidden;
+        }
+        .log-header {
+            display: flex;
+            justify-content: space-between;
+            color: #aaa;
+            font-size: 13px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+            margin-bottom: 10px;
+        }
+        .clear-btn {
+            background: none;
+            border: none;
+            color: #ff9800;
+            cursor: pointer;
+            font-size: 12px;
+            padding: 0;
+            margin: 0;
+            font-weight: normal;
+        }
+        .clear-btn:hover {
+            text-decoration: underline;
+        }
+        .log-body {
+            flex: 1;
+            min-height: 0; /* 로그가 많아도 영역이 늘어나지 않고 안에서 스크롤 */
+            overflow-y: auto;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .log-line {
+            margin-bottom: 4px;
+        }
+        .log-time {
+            color: #888;
+            margin-right: 8px;
+        }
+
+        /* 장치 목록(왼쪽)과 dll 이 생성한 json 파일 내용(오른쪽) */
+        .mid-row {
+            display: flex;
+            gap: 10px;
+            height: 150px;
+            margin-bottom: 10px;
+        }
+        .mid-row > select,
+        .mid-row > .intf-box {
+            flex: 1 1 0;
+            min-width: 0;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        .intf-box {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            border: 1px solid #999;
+            background-color: #fff;
+        }
+        .intf-header {
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 3px 6px;
+            font-size: 12px;
+            color: #555;
+            border-bottom: 1px solid #ccc;
+        }
+        .intf-header span {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .intf-header button {
+            font-size: 12px;
+            padding: 0;
+            margin: 0;
+            background: none;
+            color: #1565c0;
+            font-weight: normal;
+            flex-shrink: 0;
+        }
+        /* json 내용에 따라 나타나는 옵션 줄 */
+        .option-row {
+            display: none; /* json 을 읽은 뒤에 표시 */
+            text-align: left;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .option-row label.disabled {
+            color: #999;
+        }
+        /* Yes / No 확인 대화상자 */
+        .confirm-overlay {
+            display: none; /* askYesNo() 가 호출될 때만 표시 */
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(0, 0, 0, 0.45);
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .confirm-box {
+            background-color: #fff;
+            border-radius: 6px;
+            padding: 24px 28px;
+            max-width: 420px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        .confirm-box p {
+            margin: 0 0 20px 0;
+            white-space: pre-line; /* 문구의 줄바꿈을 그대로 표시 */
+            font-size: 15px;
+            color: #333;
+            line-height: 1.5;
+        }
+        .intf-box pre {
+            flex: 1;
+            margin: 0;
+            padding: 6px;
+            overflow: auto;
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>테스트 데모 앱</h1>
+    <p class="subtitle">BLE control</p>
+
+    <!-- 버튼 영역 -->
+    <div class="btn-container">
+        <button class="start-btn" onclick="scanBLE()">BLE Scan</button>
+        <button class="start-btn" onclick="connectBLE()">BLE Connect</button>
+        <button class="stop-btn" onclick="disconnectBLE()">BLE Disconnect</button>
+        <!-- 체크하면 스캔된 장치를 모두 표시, 끄면 DESKTOP / Nordic 만 표시 -->
+        <label style="margin-left: 10px; font-size: 14px;">
+            <input type="checkbox" id="showAllCheck" onchange="applyScanFilter()"> All list show
+        </label>
+    </div>
+
+    <!-- 스캔된 장치 목록: 한 줄을 선택한 뒤 BLE Connect -->
+    <div class="mid-row">
+        <select id="deviceList" size="6"></select>
+
+        <!-- dll 이 로드될 때 생성한 json 파일의 경로와 내용 -->
+        <div class="intf-box">
+            <div class="intf-header">
+                <span id="intfPath" title="">model_intf.json</span>
+                <button onclick="loadInterfaceFile()">다시 읽기</button>
+            </div>
+            <pre id="intfContent"></pre>
+        </div>
+    </div>
+
+    <!-- 옵션 줄: json 파일이 있을 때만 표시. rest_api 가 on 이면 선택 가능 -->
+    <div class="option-row" id="optionRow">
+        <label id="restApiLabel">
+            <input type="checkbox" id="restApiCheck" onchange="onRestApiChange()"> REST API
+            <span id="restApiNote"></span>
+        </label>
+
+        <!-- hello 반복 전송: Nordic Uart 장치에 연결되면 dll 이 켜고, 끄면 전송이 멈춤 -->
+        <label id="sendRepeatLabel" style="margin-left: 20px;">
+            <input type="checkbox" id="sendRepeatCheck" onchange="onSendRepeatChange()"> Send Repeat
+        </label>
+
+        <!-- 접속 실패 시 dll 이 같은 장치에 자동으로 다시 접속 (최대 3회) -->
+        <label id="autoReconnectLabel" style="margin-left: 20px;">
+            <input type="checkbox" id="autoReconnectCheck" onchange="onAutoReconnectChange()"> Auto Reconnect
+        </label>
+
+        <!-- Send Command: 입력한 ascii 문자열을 연결된 장치로 보냄 (Enter 키로도 전송) -->
+        <div id="sendRow" style="margin-top: 8px;">
+            Send Command
+            <input type="text" id="sendInput" style="width: 55%; font-family: Consolas, monospace; font-size: 12px;"
+                   onkeydown="if (event.key === 'Enter') sendCommand()">
+            <button onclick="sendCommand()" style="font-size: 12px; padding: 4px 10px; margin: 0; background-color: #607d8b;">Send</button>
+            <span id="sendResult"></span>
+        </div>
+    </div>
+
+    <!-- Yes / No 확인 대화상자 (연결 중에 BLE Scan 을 눌렀을 때) -->
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-box">
+            <p id="confirmText"></p>
+            <button class="stop-btn" id="confirmYes">Yes</button>
+            <button class="start-btn" id="confirmNo">No</button>
+        </div>
+    </div>
+
+    <!-- 로그 기록 창 영역 -->
+    <div class="log-container">
+        <div class="log-header">
+            <span>콘솔 로그 기록</span>
+            <button class="clear-btn" onclick="clearLog()">로그 지우기</button>
+        </div>
+        <div class="log-body" id="logBody">
+            <div class="log-line"><span class="log-time">[시스템]</span> 앱이 준비되었습니다.</div>
+        </div>
+    </div>
+
+    <script>
+        // 로그를 추가하는 함수
+        function writeLog(message) {
+            const logBody = document.getElementById('logBody');
+            const now = new Date();
+            const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+            
+            // 새로운 로그 라인 엘리먼트 생성
+            const line = document.createElement('div');
+            line.className = 'log-line';
+            line.innerHTML = `<span class="log-time">[${timeStr}]</span> ${message}`;
+            
+            logBody.appendChild(line);
+
+            // 로그가 너무 많이 쌓이면 오래된 줄부터 삭제 (고속 수신 대비)
+            while (logBody.children.length > 500) {
+                logBody.removeChild(logBody.firstChild);
+            }
+            
+            // 자동 스크롤
+            logBody.scrollTop = logBody.scrollHeight;
+        }
+
+        // 네이티브(FFI) 쪽에서 올라오는 로그 표시
+        window.ble.onLog((msg) => {
+            trackConnection(msg);
+            writeLog(escapeHtml(msg));
+        });
+
+        // 현재 연결 상태. dll 이 올려 주는 로그("connected", "disconnected: ...")로 판단한다.
+        let bleConnected = false;
+        let connectedLabel = ''; // 연결한 장치의 목록 표시 문자열 (대화상자에 보여 줌)
+
+        let connectedAddress = ''; // 연결을 요청한 장치의 주소 (목록에서 그 줄을 찾는 데 사용)
+
+        function trackConnection(msg) {
+            if (msg === 'connected') {
+                bleConnected = true;
+                setDeviceStatus(connectedAddress, 'Connected');
+            } else if (msg.startsWith('disconnected') || msg.startsWith('notify subscribe failed')) {
+                bleConnected = false;
+                setDeviceStatus(connectedAddress, 'Disconnected');
+            }
+        }
+
+        // 목록에서 해당 주소의 줄 뒤에 " - (Connected)" / " - (Disconnected)" 를 표시.
+        // status 가 비어 있으면 상태 표시를 지움.
+        function setDeviceStatus(address, status) {
+            if (!address) return;
+            for (const opt of document.getElementById('deviceList').options) {
+                if (opt.value !== address) continue;
+                opt.textContent = opt.dataset.label + (status ? ' - (' + status + ')' : '');
+            }
+        }
+
+        // Yes / No 대화상자를 띄우고, Yes 면 true 를 돌려줌
+        function askYesNo(text) {
+            return new Promise((resolve) => {
+                const overlay = document.getElementById('confirmOverlay');
+                document.getElementById('confirmText').textContent = text;
+                const close = (answer) => {
+                    overlay.style.display = 'none';
+                    resolve(answer);
+                };
+                document.getElementById('confirmYes').onclick = () => close(true);
+                document.getElementById('confirmNo').onclick = () => close(false);
+                overlay.style.display = 'flex';
+                document.getElementById('confirmNo').focus(); // 실수로 Enter 를 눌러도 유지되도록 No 가 기본
+            });
+        }
+
+        // dll 이 생성한 json 파일을 읽어 오른쪽 영역에 표시
+        async function loadInterfaceFile() {
+            const pathEl = document.getElementById('intfPath');
+            const contentEl = document.getElementById('intfContent');
+            const result = await window.ble.interfaceFile();
+            pathEl.textContent = result.path || 'model_intf.json';
+            pathEl.title = result.path || '';
+            contentEl.textContent = result.error ? '읽기 실패: ' + result.error : result.content;
+
+            // json 으로 해석되면 그 내용에 맞춰 옵션 줄을 구성
+            let intf = null;
+            if (!result.error) {
+                try {
+                    intf = JSON.parse(result.content);
+                } catch (err) {
+                    writeLog('model_intf.json 해석 실패: ' + escapeHtml(err.message));
+                }
+            }
+            applyInterface(intf);
+        }
+
+        // dll 이 알려 준 현재 설정. 체크 박스는 항상 이 값을 따른다.
+        let currentConfig = null;
+        let restApiSupported = false;
+
+        // json 내용에 따라 옵션 줄을 보이거나 숨김
+        function applyInterface(intf) {
+            const row = document.getElementById('optionRow');
+            const label = document.getElementById('restApiLabel');
+            const note = document.getElementById('restApiNote');
+
+            // json 이 없으면(읽기 실패, 해석 실패) 옵션 줄을 표시하지 않음
+            if (!intf || typeof intf !== 'object') {
+                row.style.display = 'none';
+                restApiSupported = false;
+                return;
+            }
+
+            // rest_api 는 true 또는 "on" 일 때만 지원으로 판단
+            restApiSupported = (intf.rest_api === true || intf.rest_api === 'on');
+
+            row.style.display = 'block';
+            label.className = restApiSupported ? '' : 'disabled';
+            note.textContent = restApiSupported ? '' : '(이 dll 은 지원하지 않음)';
+            showConfig();
+        }
+
+        // 체크 박스를 dll 의 현재 설정에 맞춤
+        function showConfig() {
+            const check = document.getElementById('restApiCheck');
+            check.disabled = !restApiSupported || !currentConfig;
+            check.checked = !!(currentConfig && currentConfig.rest_api === true);
+
+            // Send Repeat: dll 설정에 send_repeat 항목이 있을 때만 선택 가능
+            const repeat = document.getElementById('sendRepeatCheck');
+            const repeatSupported = !!(currentConfig && typeof currentConfig.send_repeat === 'boolean');
+            repeat.disabled = !repeatSupported;
+            repeat.checked = repeatSupported && currentConfig.send_repeat === true;
+            document.getElementById('sendRepeatLabel').className = repeatSupported ? '' : 'disabled';
+
+            // Auto Reconnect: dll 설정에 auto_reconnect 항목이 있을 때만 선택 가능
+            const reconnect = document.getElementById('autoReconnectCheck');
+            const reconnectSupported = !!(currentConfig && typeof currentConfig.auto_reconnect === 'boolean');
+            reconnect.disabled = !reconnectSupported;
+            reconnect.checked = reconnectSupported && currentConfig.auto_reconnect === true;
+            document.getElementById('autoReconnectLabel').className = reconnectSupported ? '' : 'disabled';
+        }
+
+        // dll 의 설정이 바뀔 때마다 (시작할 때 한 번 포함) 현재 설정을 받음
+        window.ble.onConfig((json) => {
+            try {
+                currentConfig = JSON.parse(json);
+            } catch (err) {
+                writeLog('설정 해석 실패: ' + escapeHtml(err.message));
+                return;
+            }
+            writeLog('dll 현재 설정: ' + escapeHtml(json));
+            showConfig();
+        });
+
+        // Send Command: 입력한 ascii 문자열을 연결된 장치로 보냄
+        async function sendCommand() {
+            const result = document.getElementById('sendResult');
+            const text = document.getElementById('sendInput').value;
+            const fail = (message) => {
+                result.textContent = message;
+                result.style.color = '#c62828';
+            };
+
+            if (text.length === 0) return fail('보낼 문자열을 입력하세요');
+            // ascii(0x20~0x7E) 만 허용. 한글 등은 1바이트로 보낼 수 없음
+            if (!/^[\x20-\x7E]+$/.test(text)) return fail('ascii 문자만 보낼 수 있음');
+            if (typeof window.ble.send !== 'function') return fail('window.ble.send 가 없음 (preload 에 추가 필요)');
+
+            const rc = await window.ble.send(text);
+            if (rc === 0) {
+                result.textContent = '전송함 (' + text.length + ' bytes)';
+                result.style.color = '#2e7d32';
+            } else if (rc === -1) {
+                fail('연결된 장치가 없음');
+            } else {
+                fail('전송 실패 (코드 ' + rc + ')');
+            }
+        }
+
+        // 체크 박스를 사용자가 바꿨을 때: 바뀐 항목만 dll 에 전달
+        async function onRestApiChange() {
+            const wanted = document.getElementById('restApiCheck').checked;
+            const rc = await window.ble.setConfig({ rest_api: wanted });
+            if (rc !== 0) {
+                writeLog('설정 변경 실패 (코드 ' + rc + ')');
+            }
+            // 성공하면 dll 이 보낸 새 설정으로, 실패하면 기존 설정으로 체크 박스를 맞춤
+            showConfig();
+        }
+
+        // Send Repeat 체크 박스를 사용자가 바꿨을 때: 바뀐 항목만 dll 에 전달
+        async function onSendRepeatChange() {
+            const wanted = document.getElementById('sendRepeatCheck').checked;
+            const rc = await window.ble.setConfig({ send_repeat: wanted });
+            if (rc !== 0) {
+                writeLog('설정 변경 실패 (코드 ' + rc + ')');
+            }
+            // 성공하면 dll 이 보낸 새 설정으로, 실패하면 기존 설정으로 체크 박스를 맞춤
+            showConfig();
+        }
+
+        // Auto Reconnect 체크 박스를 사용자가 바꿨을 때: 바뀐 항목만 dll 에 전달
+        async function onAutoReconnectChange() {
+            const wanted = document.getElementById('autoReconnectCheck').checked;
+            const rc = await window.ble.setConfig({ auto_reconnect: wanted });
+            if (rc !== 0) {
+                writeLog('설정 변경 실패 (코드 ' + rc + ')');
+            }
+            showConfig();
+        }
+
+        loadInterfaceFile();
+
+        function escapeHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        // "All list show" 가 꺼져 있을 때 목록에 보여 줄 장치 이름.
+        // 이 중 하나가 이름에 들어 있는 장치만 표시 (대소문자 무시)
+        //   DESKTOP : PC 시뮬레이터 (Windows PC 이름)
+        //   Nordic  : Nordic UART FW
+        const SCAN_NAME_FILTER = ['DESKTOP', 'Nordic'];
+
+        function isWantedDevice(name) {
+            const upper = (name || '').toUpperCase();
+            return SCAN_NAME_FILTER.some((word) => upper.includes(word.toUpperCase()));
+        }
+
+        // 이 줄을 지금 보여 줄지: "All list show" 가 켜져 있으면 모두, 꺼져 있으면 필터에 맞는 것만
+        function isShown(opt) {
+            return document.getElementById('showAllCheck').checked || isWantedDevice(opt.dataset.name);
+        }
+
+        // 체크 박스를 바꿨을 때: 이미 스캔된 줄들을 다시 보이거나 숨김 (다시 스캔할 필요 없음)
+        function applyScanFilter() {
+            const list = document.getElementById('deviceList');
+            for (const opt of list.options) {
+                opt.hidden = !isShown(opt);
+                if (opt.hidden && opt.selected) opt.selected = false; // 숨겨진 줄이 선택된 채로 남지 않게
+            }
+        }
+
+        // 스캔으로 발견된 장치를 목록에 추가 (같은 주소는 한 번만).
+        // 모든 장치를 넣어 두고, 필터에 맞지 않는 줄은 숨겨 둔다.
+        window.ble.onFound((dev) => {
+            const list = document.getElementById('deviceList');
+            for (const opt of list.options) {
+                if (opt.value === dev.address) return;
+            }
+            const opt = document.createElement('option');
+            opt.value = dev.address;
+            opt.dataset.name = dev.name || ''; // 필터 판단용
+            opt.dataset.label = (dev.name || '(이름 없음)') + '  [' + dev.address + ']'; // 상태 표시를 뺀 원래 문자열
+            opt.textContent = opt.dataset.label;
+            opt.hidden = !isShown(opt);
+            list.appendChild(opt);
+        });
+
+        // BLE Scan: 목록을 비우고 스캔 시작
+        async function scanBLE() {
+            // 연결 중이면 먼저 물어봄: Yes = 연결 해제 후 스캔, No = 현재 상태 유지
+            if (bleConnected) {
+                const target = connectedLabel ? '\n' + connectedLabel : '';
+                const yes = await askYesNo('현재 장치와 연결 중입니다.' + target + '\n연결을 강제로 해제하고 스캔할까요?');
+                if (!yes) {
+                    writeLog('스캔 취소: 현재 연결을 유지합니다.');
+                    return;
+                }
+                await disconnectBLE();
+            }
+            // 목록을 비우므로 연결 상태 표시도 모두 사라짐.
+            // 주소도 잊어서, 뒤늦게 도착하는 해제 알림이 새 목록에 상태를 붙이지 않게 함.
+            connectedAddress = '';
+            connectedLabel = '';
+            document.getElementById('deviceList').innerHTML = '';
+            writeLog('BLE 스캔을 시작합니다.');
+            const rc = await window.ble.scanStart();
+            if (rc !== 0) writeLog('스캔 실패 (코드 ' + rc + ')');
+        }
+
+        // BLE Connect: 목록에서 선택한 장치에 연결
+        async function connectBLE() {
+            const address = document.getElementById('deviceList').value;
+            if (!address) {
+                writeLog('목록에서 장치를 먼저 선택하세요.');
+                return;
+            }
+            const list = document.getElementById('deviceList');
+            const label = list.selectedIndex >= 0 ? list.options[list.selectedIndex].dataset.label : address;
+            const rc = await window.ble.connect(address);
+            if (rc !== 0) {
+                writeLog('연결 요청 실패 (코드 ' + rc + ')');
+            } else {
+                connectedAddress = address;
+                connectedLabel = label;
+            }
+        }
+
+        // BLE Disconnect: 연결 해제
+        async function disconnectBLE() {
+            writeLog('BLE 연결을 해제합니다.');
+            await window.ble.disconnect();
+            if (bleConnected) setDeviceStatus(connectedAddress, 'Disconnected');
+            bleConnected = false;
+        }
+
+        // 로그 초기화
+        function clearLog() {
+            document.getElementById('logBody').innerHTML = '';
+            writeLog('로그 기록이 초기화되었습니다.');
+        }
+    </script>
+</body>
+</html>
+
