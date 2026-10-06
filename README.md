@@ -8,8 +8,8 @@ This project provides a simple Echo application to test BLE communication betwee
 
 * Cross-platform native BLE library
 * ASCII data transmission and reception
-* Simple Echo communication test
-* JavaScript application integration
+* Simple Echo communication test application included (electron desktop)
+* ble-bridge.cpp is main for funtionality source file 
 
 ## Requirements
 
